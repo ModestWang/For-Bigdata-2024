@@ -1,0 +1,80 @@
+﻿@page "/chat/{index:int}"
+
+<div class="chat-container">
+    <div class="output-box">
+        <ul>
+            @foreach (var message in inputMessages)
+            {
+                 <li>@message</li>
+            }
+        </ul>
+    </div>
+    <div class="input-box">
+        <input @bind="inputMessage" placeholder="输入消息..." />
+        <button @onclick="OnSendMessageButtonClicked"> 发送 </button>
+    </div>
+</div>
+
+<ul>
+    @foreach (var message in inputMessages)
+    {
+        <li>@message</li>
+    }
+</ul>
+
+<style>
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 88vh;
+    }
+
+    .output-box {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+        border: none; /* 隐藏边界线 */
+    }
+
+    .input-box {
+        display: flex;
+        height: 60px;
+        padding: 10px;
+        border-top: 1px solid #ccc;
+    }
+
+    .input-box input {
+        flex: 1;
+        padding: 6px;
+        margin-right: 8px;
+        border-radius: 15px; /* 圆角 */
+        border: 2px solid #ccc;
+    }
+
+    .input-box button {
+        padding: 5px 30px;
+        border-radius: 15px; /* 圆角 */
+        border: 1px solid #ccc;
+        background-color: #007bff;
+        color: white;
+    }
+</style>
+    
+
+@code {
+    [Parameter]
+    public int index { get; set; }
+
+    private String inputMessage;
+    private String outputMessage;
+    static List<String> inputMessages = new List<String>();
+
+    private void OnSendMessageButtonClicked()
+    {
+        var chatManagerInstance = ChatManager.ChatManagerInstance;
+        var currentChatIndex = chatManagerInstance.CurrentChatIndex;
+        var currentChat = chatManagerInstance.Chats[index];
+        currentChat.InputMessages.Add(inputMessage);
+        inputMessages = currentChat.InputMessages;
+    }
+}
