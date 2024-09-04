@@ -2,6 +2,7 @@
 
 <div class="chat-container">
     <div class="output-box">
+        <p>@inputMessage</p>
         <ul>
             @foreach (var message in inputMessages)
             {
@@ -39,13 +40,14 @@
     .input-box {
         display: flex;
         height: 60px;
-        padding: 10px;
+        padding: 0px;
         border-top: 1px solid #ccc;
     }
 
     .input-box input {
         flex: 1;
         padding: 6px;
+        margin-top: 20px;
         margin-right: 8px;
         border-radius: 15px; /* 圆角 */
         border: 2px solid #ccc;
@@ -53,10 +55,14 @@
 
     .input-box button {
         padding: 5px 30px;
+        margin-top: 20px;
         border-radius: 15px; /* 圆角 */
         border: 1px solid #ccc;
         background-color: #007bff;
         color: white;
+    }
+    .input-box button:hover {
+        background-color: #0056b3; /* 悬停时的背景颜色 */
     }
 </style>
     
@@ -71,10 +77,15 @@
 
     private void OnSendMessageButtonClicked()
     {
-        var chatManagerInstance = ChatManager.ChatManagerInstance;
-        var currentChatIndex = chatManagerInstance.CurrentChatIndex;
-        var currentChat = chatManagerInstance.Chats[index];
-        currentChat.InputMessages.Add(inputMessage);
-        inputMessages = currentChat.InputMessages;
+        // var chatManagerInstance = ChatManager.ChatManagerInstance;
+        // var currentChatIndex = chatManagerInstance.CurrentChatIndex;
+        // var currentChat = chatManagerInstance.Chats[index];
+        // currentChat.InputMessages.Add(inputMessage);
+        // inputMessages = currentChat.InputMessages;
+        if (!String.IsNullOrWhiteSpace(inputMessage))
+        {
+            inputMessages.Add(inputMessage);
+            inputMessage = String.Empty; // 清空输入框
+        }
     }
 }
