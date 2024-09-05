@@ -1,16 +1,23 @@
-﻿using BlazorApp.Components.Pages;
+﻿
 
 namespace BlazorApp
 {
+    // Message类
+    public class ChatMessage
+    {
+        public string Content { get; set; } = "";
+        public string Sender { get; set; } = "";
+    }
+
     // Chat实例
     public class ChatInstance
     {
-        public String Name { get; set; } = "New Chat"; // Chat 名称
-        public String WellcomeMessage { get; set; } = "Welcome to the chat!"; // 欢迎消息
-        public String InputMessage { get; set; } // 输入消息
-        public String OutputMessage { get; set; } // 输出消息
-        public List<String> InputMessages { get; } = new List<String>(); // 输入消息列表
-        public List<String> OutputMessages { get; } = new List<String>(); // 输出消息列表
+        public string Name { get; set; } // Chat 名称
+        public ChatMessage WellcomeMessage { get; set; } // 欢迎消息
+        public ChatMessage InputMessage { get; set; } // 输入消息
+        public ChatMessage OutputMessage { get; set; } // 输出消息
+        public List<ChatMessage> InputMessages { get; } = new List<ChatMessage>(); // 输入消息列表
+        public List<ChatMessage> OutputMessages { get; } = new List<ChatMessage>(); // 输出消息列表
 
         public ChatInstance()
         {
@@ -20,11 +27,16 @@ namespace BlazorApp
         public ChatInstance(String CustomName)
         {
             Name = CustomName;
+            WellcomeMessage = new ChatMessage()
+            {
+                Content = "Welcome to the chat!",
+                Sender = "Robot"
+            };
         }
 
         public void SendMessage(String message)
         {
-            WellcomeMessage = message;
+
         }
 
         public event Action<String> OnMessageReceived;
@@ -43,12 +55,13 @@ namespace BlazorApp
         public int CurrentChatIndex { get; set; }
 
         // 构造函数
-        public ChatManager() {
+        public ChatManager()
+        {
             CreateChat("Chat 1");
         }
 
         // 创建新的聊天
-        public void CreateChat(String chatName= "New Chat")
+        public void CreateChat(String chatName = "New Chat")
         {
             var newChat = new ChatInstance(chatName);
             Chats.Add(newChat);
@@ -57,7 +70,7 @@ namespace BlazorApp
         // 删除聊天
         public void DeleteChat(int index)
         {
-            if(Chats.Count > 0)
+            if (Chats.Count > 0)
             {
                 if (index >= 0 && index < Chats.Count)
                 {

@@ -1,3 +1,12 @@
+/*
+ * @FilePath: Program.cs
+ * @Author: ModestWang 1598593280@qq.com
+ * @Date: 2024-09-04 09:48:00
+ * @LastEditors: ModestWang
+ * @LastEditTime: 2024-09-05 10:35:17
+ * 2024 by ModestWang, All Rights Reserved.
+ * @Descripttion:
+ */
 using BlazorApp.Components;
 
 var builder = WebApplication.CreateBuilder(args);

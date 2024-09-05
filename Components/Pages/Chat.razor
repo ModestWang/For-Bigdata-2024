@@ -1,27 +1,35 @@
 ﻿@page "/chat/{index:int}"
+@rendermode InteractiveServer
 
 <div class="chat-container">
     <div class="output-box">
-        <p>@inputMessage</p>
         <ul>
             @foreach (var message in inputMessages)
             {
-                 <li>@message</li>
+                <li class="message-item @(message.Sender == "User" ? "user-message" : "other-message")">
+                    @if (message.Sender == "Robot")
+                    {
+                        <img src="robot.png" class="icon" />
+                    }
+                    <span class="message-content">@message.Content</span>
+                    @if (message.Sender == "User")
+                    {
+                        <img src="user.png" class="icon" />
+                    }
+                </li>
             }
         </ul>
     </div>
     <div class="input-box">
         <input @bind="inputMessage" placeholder="输入消息..." />
-        <button @onclick="OnSendMessageButtonClicked"> 发送 </button>
+        <button @onclick="OnUserSendMessageButtonClicked"> 发送(User) </button>
+    </div>
+
+    <div class="input-box">
+        <input @bind="inputMessage" placeholder="输入消息..." />
+        <button @onclick="OnRobotSendMessageButtonClicked"> 发送(Robot) </button>
     </div>
 </div>
-
-<ul>
-    @foreach (var message in inputMessages)
-    {
-        <li>@message</li>
-    }
-</ul>
 
 <style>
     .chat-container {
@@ -34,7 +42,7 @@
         flex: 1;
         overflow-y: auto;
         padding: 10px;
-        border: none; /* 隐藏边界线 */
+        border: none;
     }
 
     .input-box {
@@ -49,43 +57,76 @@
         padding: 6px;
         margin-top: 20px;
         margin-right: 8px;
-        border-radius: 15px; /* 圆角 */
+        border-radius: 15px;
         border: 2px solid #ccc;
     }
 
     .input-box button {
         padding: 5px 30px;
         margin-top: 20px;
-        border-radius: 15px; /* 圆角 */
+        border-radius: 15px;
         border: 1px solid #ccc;
         background-color: #007bff;
         color: white;
     }
+
     .input-box button:hover {
-        background-color: #0056b3; /* 悬停时的背景颜色 */
+        background-color: #0056b3;
+    }
+
+    .message-item {
+        display: flex;
+        align-items: center;
+        margin: 5px 0;
+    }
+
+    .user-message {
+        justify-content: flex-end;
+    }
+
+    .other-message {
+        justify-content: flex-start;
+    }
+
+    .message-content {
+        background-color: #f1f0f0;
+        padding: 10px;
+        border-radius: 10px;
+        margin: 0 10px;
+    }
+
+    .user-message .message-content {
+        background-color: #dcf8c6;
+    }
+
+    .icon {
+        width: 30px;
+        height: 30px;
     }
 </style>
-    
 
 @code {
     [Parameter]
     public int index { get; set; }
 
-    private String inputMessage;
-    private String outputMessage;
-    static List<String> inputMessages = new List<String>();
+    private string inputMessage;
+    private List<ChatMessage> inputMessages = new List<ChatMessage>();
 
-    private void OnSendMessageButtonClicked()
+    private void OnUserSendMessageButtonClicked()
     {
-        // var chatManagerInstance = ChatManager.ChatManagerInstance;
-        // var currentChatIndex = chatManagerInstance.CurrentChatIndex;
-        // var currentChat = chatManagerInstance.Chats[index];
-        // currentChat.InputMessages.Add(inputMessage);
-        // inputMessages = currentChat.InputMessages;
-        if (!String.IsNullOrWhiteSpace(inputMessage))
+        if (!string.IsNullOrWhiteSpace(inputMessage))
         {
-            inputMessages.Add(inputMessage);
-            inputMessage = String.Empty; // 清空输入框
+            inputMessages.Add(new ChatMessage { Content = inputMessage, Sender = "User" });
+            inputMessage = string.Empty; // 清空输入框
+        }
+    }
+
+    private void OnRobotSendMessageButtonClicked()
+    {
+        if (!string.IsNullOrWhiteSpace(inputMessage))
+        {
+            inputMessages.Add(new ChatMessage { Content = inputMessage, Sender = "Robot" });
+            inputMessage = string.Empty; // 清空输入框
         }
     }
 }

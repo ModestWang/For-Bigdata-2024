@@ -1,7 +1,8 @@
-﻿
+﻿@rendermode InteractiveServer
+
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">BlazorApp</a>
+        <a class="navbar-brand" href="">Best Friend</a>
     </div>
 </div>
 
@@ -14,20 +15,21 @@
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
-@* 
+        @*
         <div class="nav-item px-3">
-            <Button class="btn btn-primary btn-sm" @onclick="OnCreateChatButtonClicked">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Create Chat
-            </Button>
-        </div> 
- *@
-@* 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="chat">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> @ChatManager.ChatManagerInstance.Chats[ChatManager.ChatManagerInstance.CurrentChatIndex].Name
-            </NavLink>
+        <Button class="btn btn-primary btn-sm" @onclick="OnCreateChatButtonClicked">
+        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Create Chat
+        </Button>
         </div>
- *@
+        *@
+        @*
+        <div class="nav-item px-3">
+        <NavLink class="nav-link" href="chat">
+        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>
+        @ChatManager.ChatManagerInstance.Chats[ChatManager.ChatManagerInstance.CurrentChatIndex].Name
+        </NavLink>
+        </div>
+        *@
         @* 动态生成聊天组件 *@
         @foreach (var chat in ChatManager.ChatManagerInstance.Chats)
         {
