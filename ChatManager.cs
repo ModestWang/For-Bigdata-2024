@@ -5,19 +5,20 @@ namespace BlazorApp
     // Message类
     public class ChatMessage
     {
-        public string Content { get; set; } = "";
-        public string Sender { get; set; } = "";
+        public required string Content { get; set; }
+        public required string Role { get; set; }
     }
 
     // Chat实例
     public class ChatInstance
     {
-        public string Name { get; set; } // Chat 名称
-        public ChatMessage WellcomeMessage { get; set; } // 欢迎消息
-        public ChatMessage InputMessage { get; set; } // 输入消息
-        public ChatMessage OutputMessage { get; set; } // 输出消息
-        public List<ChatMessage> InputMessages { get; } = new List<ChatMessage>(); // 输入消息列表
-        public List<ChatMessage> OutputMessages { get; } = new List<ChatMessage>(); // 输出消息列表
+        public string? Name { get; set; } // Chat 名称
+        public ChatMessage? WellcomeMessage { get; set; } // 欢迎消息
+        public ChatMessage? InputMessage { get; set; } // 输入消息
+        public ChatMessage? OutputMessage { get; set; } // 输出消息
+        public List<ChatMessage>? InputMessages { get; } = new List<ChatMessage>(); // 输入消息列表
+        public List<ChatMessage>? OutputMessages { get; } = new List<ChatMessage>(); // 输出消息列表
+        public bool IsEditing { get; set; } = false; // 是否正在编辑
 
         public ChatInstance()
         {
@@ -30,7 +31,7 @@ namespace BlazorApp
             WellcomeMessage = new ChatMessage()
             {
                 Content = "Welcome to the chat!",
-                Sender = "Robot"
+                Role = "Robot"
             };
         }
 
@@ -39,7 +40,17 @@ namespace BlazorApp
 
         }
 
-        public event Action<String> OnMessageReceived;
+        public event Action<String> OnMessageReceived
+        {
+            add
+            {
+                // Add the event handler
+            }
+            remove
+            {
+                // Remove the event handler
+            }
+        }
     }
 
     // Chat管理器
@@ -53,6 +64,7 @@ namespace BlazorApp
 
         // 当前聊天的索引
         public int CurrentChatIndex { get; set; }
+
 
         // 构造函数
         public ChatManager()
@@ -78,7 +90,5 @@ namespace BlazorApp
                 }
             }
         }
-
-
     }
 }

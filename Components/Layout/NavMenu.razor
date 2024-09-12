@@ -2,7 +2,7 @@
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Best Friend</a>
+        <a class="navbar-brand" href="">心晴驿站</a>
     </div>
 </div>
 
@@ -15,13 +15,7 @@
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
-        @*
-        <div class="nav-item px-3">
-        <Button class="btn btn-primary btn-sm" @onclick="OnCreateChatButtonClicked">
-        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Create Chat
-        </Button>
-        </div>
-        *@
+
         @*
         <div class="nav-item px-3">
         <NavLink class="nav-link" href="chat">
@@ -36,20 +30,111 @@
             var chatIndex = ChatManager.ChatManagerInstance.Chats.IndexOf(chat);
             var chatLink = $"chat/{chatIndex}";
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="@chatLink">
-                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> @chat.Name
+                <NavLink class="nav-link" href="@chatLink" style="position: relative;">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>
+                    @if (chat.IsEditing)
+                    {
+                        <input type="text" class="form-control" @bind="newChatName"
+                            @onblur="() => OnRenameChatFinished(chatIndex, newChatName)"
+                            @onkeydown="(e) => OnRenameKeyDown(e, chatIndex)" />
+                    }
+                    else
+                    {
+                        @chat.Name
+                    }
+                    <button class="btn btn-warning btn-sm"
+                        style="position: absolute; right: 50px; background-color: #ffc107; border-color: #ffc107; padding: 0.25rem 0.5rem;"
+                        @onclick="() => OnRenameChatButtonClicked(chatIndex, chat.Name)">
+                        <img src="rename.png" alt="重命名" style="width: 16px; height: 16px;" />
+                    </button>
+                    <button class="btn btn-danger btn-sm"
+                        style="position: absolute; right: 10px; background-color: #dc3545; border-color: #dc3545; padding: 0.25rem 0.5rem;"
+                        @onclick="() => OnDeleteChatButtonClicked(chatIndex)">
+                        <img src="trash.png" alt="删除" style="width: 16px; height: 16px;" />
+                    </button>
                 </NavLink>
             </div>
         }
+
+        <div class="nav-item px-3 d-flex justify-content-center align-items-center">
+            <Button class="btn create-btn btn-primary btn-sm w-100 d-flex align-items-center justify-content-center"
+                @onclick="OnCreateChatButtonClicked">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span>
+                <span class="ml-2">New Chat</span>
+            </Button>
+        </div>
+
     </nav>
 </div>
 
 
+<style>
+    .nav-item {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .btn-danger {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+    }
+
+    .create-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 50px;
+    }
+
+    .ml-2 {
+        margin-left: 0.5rem;
+    }
+</style>
 
 @code {
     private void OnCreateChatButtonClicked()
     {
         BlazorApp.ChatManager.ChatManagerInstance.CreateChat();
     }
+    private void OnDeleteChatButtonClicked(int chatIndex)
+    {
+        ChatManager.ChatManagerInstance.Chats.RemoveAt(chatIndex);
+        StateHasChanged();
+    }
+    private void OnRenameChatButtonClicked(int chatIndex, string currentName)
+    {
+        ChatManager.ChatManagerInstance.Chats[chatIndex].IsEditing = true;
+        newChatName = currentName; // 初始化为当前名称
+        StateHasChanged();
+    }
 
+    private void OnRenameChatFinished(int chatIndex, string newName)
+    {
+        if (!string.IsNullOrEmpty(newName))
+        {
+            ChatManager.ChatManagerInstance.Chats[chatIndex].Name = newName;
+        }
+        else
+        {
+            ChatManager.ChatManagerInstance.Chats[chatIndex].Name = "未命名";
+        }
+        ChatManager.ChatManagerInstance.Chats[chatIndex].IsEditing = false;
+        StateHasChanged();
+    }
+
+    private string newChatName = "";
+
+    private void OnRenameKeyDown(KeyboardEventArgs e, int chatIndex)
+    {
+        if (e.Key == "Enter")
+        {
+            OnRenameChatFinished(chatIndex, newChatName);
+        }
+    }
 }

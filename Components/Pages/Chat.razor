@@ -1,18 +1,22 @@
 ﻿@page "/chat/{index:int}"
 @rendermode InteractiveServer
+@inject IConfiguration Configuration
 
 <div class="chat-container">
+    <button @onclick="ToggleTheme" class="theme-toggle-button"
+        style="background-color:@themeToggleButtonColor; border: 2px solid @themeToggleButtonBorderColor;">🌈</button>
+
     <div class="output-box">
         <ul>
             @foreach (var message in inputMessages)
             {
-                <li class="message-item @(message.Sender == "User" ? "user-message" : "other-message")">
-                    @if (message.Sender == "Robot")
+                <li class="message-item @(message.Role == "User" ? "user-message" : "other-message")">
+                    @if (message.Role == "Robot")
                     {
-                        <img src="robot.png" class="icon" />
+                        <img src="egg.png" class="icon" />
                     }
                     <span class="message-content">@message.Content</span>
-                    @if (message.Sender == "User")
+                    @if (message.Role == "User")
                     {
                         <img src="user.png" class="icon" />
                     }
@@ -20,18 +24,24 @@
             }
         </ul>
     </div>
+
     <div class="input-box">
-        <input @bind="inputMessage" placeholder="输入消息..." />
-        <button @onclick="OnUserSendMessageButtonClicked"> 发送(User) </button>
+        <input @bind="inputMessage" placeholder="输入消息..." style="background-color:@inputBoxBackgroundColor;" />
+        <button @onclick="OnUserSendMessageButtonClicked">发送(User)</button>
     </div>
 
     <div class="input-box">
-        <input @bind="inputMessage" placeholder="输入消息..." />
-        <button @onclick="OnRobotSendMessageButtonClicked"> 发送(Robot) </button>
+        <input @bind="inputMessage" placeholder="输入消息..." style="background-color:@inputBoxBackgroundColor;" />
+        <button @onclick="OnRobotSendMessageButtonClicked">发送(Robot)</button>
     </div>
 </div>
 
 <style>
+    body {
+        background-color: @backgroundColor;
+        color: @textColor;
+    }
+
     .chat-container {
         display: flex;
         flex-direction: column;
@@ -41,7 +51,7 @@
     .output-box {
         flex: 1;
         overflow-y: auto;
-        padding: 10px;
+        padding: 5px;
         border: none;
     }
 
@@ -78,6 +88,8 @@
         display: flex;
         align-items: center;
         margin: 5px 0;
+        padding: 0 10px;
+        /* 调整左右边距 */
     }
 
     .user-message {
@@ -89,19 +101,29 @@
     }
 
     .message-content {
-        background-color: #f1f0f0;
+        background-color: @otherMessageBackgroundColor;
         padding: 10px;
         border-radius: 10px;
         margin: 0 10px;
     }
 
     .user-message .message-content {
-        background-color: #dcf8c6;
+        background-color: @userMessageBackgroundColor;
     }
 
     .icon {
         width: 30px;
         height: 30px;
+    }
+
+    .theme-toggle-button {
+        margin-bottom: 10px;
+        padding: 5px;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
     }
 </style>
 
@@ -109,14 +131,99 @@
     [Parameter]
     public int index { get; set; }
 
-    private string inputMessage;
+    private string backgroundColor = "#FFFFFF";
+    private string textColor = "#000000";
+    private string inputBoxBackgroundColor = "#FFFFFF";
+    private string outputTextColor = "#000000";
+    private string userMessageBackgroundColor = "#dcf8c6";
+    private string otherMessageBackgroundColor = "#f1f0f0";
+    private string themeToggleButtonColor = "#ffcccb";
+    private string themeToggleButtonBorderColor = "#ff69b4";
+    private bool isDarkTheme = false;
+    private string inputMessage { get; set; } = string.Empty;
     private List<ChatMessage> inputMessages = new List<ChatMessage>();
+
+    AccessAPI api = new AccessAPI();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        backgroundColor = GetRandomColor();
+        inputBoxBackgroundColor = LightenColor(backgroundColor, 0.1);
+        themeToggleButtonColor = LightenColor(backgroundColor, 0.2);
+        themeToggleButtonBorderColor = backgroundColor;
+        outputTextColor = textColor;
+    }
+
+    private string GetRandomColor()
+    {
+        var random = new Random();
+        var colors = new List<string>
+{
+"#FFB6C1", // 浅粉红
+"#FFDAB9", // 桃色
+"#E6E6FA", // 薰衣草
+"#FFFACD", // 柠檬薄纱
+"#E0FFFF", // 浅青色
+"#F0E68C", // 卡其色
+"#FAFAD2", // 浅金菊黄
+"#D8BFD8", // 蓟色
+"#FFE4E1", // 薄雾玫瑰
+"#F5DEB3", // 小麦色
+"#FFF0F5", // 脸红的淡紫色
+"#F5F5DC", // 米色
+"#F0FFF0", // 蜜瓜色
+"#F0FFFF", // 天蓝色
+"#E6E6FA", // 薰衣草
+"#FFF5EE", // 海贝色
+"#FFE4B5", // 秘鲁色
+}; // 更多的柔和颜色
+        int index = random.Next(colors.Count);
+        return colors[index];
+    }
+
+    private string LightenColor(string color, double factor)
+    {
+        var colorValue = System.Drawing.ColorTranslator.FromHtml(color);
+        int r = (int)(colorValue.R + (255 - colorValue.R) * factor);
+        int g = (int)(colorValue.G + (255 - colorValue.G) * factor);
+        int b = (int)(colorValue.B + (255 - colorValue.B) * factor);
+        return $"#{r:X2}{g:X2}{b:X2}";
+    }
+
+    private void ToggleTheme()
+    {
+        isDarkTheme = !isDarkTheme;
+        if (isDarkTheme)
+        {
+            backgroundColor = "#333333"; // 暗色背景
+            textColor = "#FFFFFF"; // 亮色文字
+            inputBoxBackgroundColor = "#555555"; // 固定暗色输入框背景
+            themeToggleButtonColor = "#777777"; // 固定暗色按钮背景
+            themeToggleButtonBorderColor = "#555555"; // 固定暗色按钮边框
+            outputTextColor = "#FFFFFF"; // 亮色输出框文字
+            userMessageBackgroundColor = "#4a4a4a"; // 暗色用户消息背景
+            otherMessageBackgroundColor = "#3a3a3a"; // 暗色其他消息背景
+        }
+        else
+        {
+            backgroundColor = GetRandomColor(); // 亮色背景
+            textColor = "#000000"; // 暗色文字
+            inputBoxBackgroundColor = LightenColor(backgroundColor, 0.1); // 比背景颜色浅一点
+            themeToggleButtonColor = LightenColor(backgroundColor, 0.2); // 比背景颜色更浅
+            themeToggleButtonBorderColor = backgroundColor; // 与背景颜色一致
+            outputTextColor = "#000000"; // 暗色输出框文字
+            userMessageBackgroundColor = "#dcf8c6"; // 亮色用户消息背景
+            otherMessageBackgroundColor = "#f1f0f0"; // 亮色其他消息背景
+        }
+    }
 
     private void OnUserSendMessageButtonClicked()
     {
         if (!string.IsNullOrWhiteSpace(inputMessage))
         {
-            inputMessages.Add(new ChatMessage { Content = inputMessage, Sender = "User" });
+            inputMessages.Add(new ChatMessage { Content = inputMessage, Role = "User" });
+
             inputMessage = string.Empty; // 清空输入框
         }
     }
@@ -125,7 +232,7 @@
     {
         if (!string.IsNullOrWhiteSpace(inputMessage))
         {
-            inputMessages.Add(new ChatMessage { Content = inputMessage, Sender = "Robot" });
+            inputMessages.Add(new ChatMessage { Content = inputMessage, Role = "Robot" });
             inputMessage = string.Empty; // 清空输入框
         }
     }
