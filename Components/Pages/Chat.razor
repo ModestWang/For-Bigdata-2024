@@ -8,7 +8,7 @@
 
     <div class="output-box">
         <ul>
-            @foreach (var message in inputMessages)
+            @foreach (var message in Messages)
             {
                 <li class="message-item @(message.Role == "User" ? "user-message" : "other-message")">
                     @if (message.Role == "Robot")
@@ -26,14 +26,14 @@
     </div>
 
     <div class="input-box">
-        <input @bind="inputMessage" placeholder="输入消息..." style="background-color:@inputBoxBackgroundColor;" />
+        <input @bind="question" placeholder="输入消息..." style="background-color:@inputBoxBackgroundColor;" />
         <button @onclick="OnUserSendMessageButtonClicked">发送(User)</button>
     </div>
 
-    <div class="input-box">
-        <input @bind="inputMessage" placeholder="输入消息..." style="background-color:@inputBoxBackgroundColor;" />
-        <button @onclick="OnRobotSendMessageButtonClicked">发送(Robot)</button>
-    </div>
+    @* <div class="input-box">
+    <input @bind="answer" placeholder="输入消息..." style="background-color:@inputBoxBackgroundColor;" />
+    <button @onclick="OnRobotSendMessageButtonClicked">发送(Robot)</button>
+    </div> *@
 </div>
 
 <style>
@@ -140,8 +140,11 @@
     private string themeToggleButtonColor = "#ffcccb";
     private string themeToggleButtonBorderColor = "#ff69b4";
     private bool isDarkTheme = false;
-    private string inputMessage { get; set; } = string.Empty;
-    private List<ChatMessage> inputMessages = new List<ChatMessage>();
+    private string question { get; set; } = string.Empty;
+    private string answer { get; set; } = string.Empty;
+    //private List<ChatMessage> Questions = new List<ChatMessage>();
+    //private List<ChatMessage> Answers = new List<ChatMessage>();
+    private List<ChatMessage> Messages = new List<ChatMessage>();
 
     AccessAPI api = new AccessAPI();
 
@@ -155,13 +158,48 @@
         outputTextColor = textColor;
     }
 
+    private async Task OnUserSendMessageButtonClicked()
+    {
+        if (!string.IsNullOrWhiteSpace(question))
+        {
+            Messages.Add(new ChatMessage { Content = question, Role = "User" });
+            string tempQuestion = question;
+            question = string.Empty; // 清空输入框
+            answer = await ChatManager.ChatAPI.GetAnswerFromQwen(tempQuestion);
+            await TypeMessageAsync(answer);
+        }
+    }
+
+    private async Task TypeMessageAsync(string message)
+    {
+        var robotMessage = new ChatMessage { Content = string.Empty, Role = "Robot" };
+        Messages.Add(robotMessage);
+
+        foreach (char c in message)
+        {
+            robotMessage.Content += c;
+            StateHasChanged();
+            await Task.Delay(50); // 调整延迟以控制逐字输出速度
+        }
+    }
+
+    /*
+    private void OnRobotSendMessageButtonClicked()
+    {
+    if (!string.IsNullOrWhiteSpace(answer))
+    {
+    Messages.Add(new ChatMessage { Content = answer, Role = "Robot" });
+    //answer = string.Empty; // 清空输入框
+    }
+    }
+    */
+
     private string GetRandomColor()
     {
         var random = new Random();
         var colors = new List<string>
 {
 "#FFB6C1", // 浅粉红
-"#FFDAB9", // 桃色
 "#E6E6FA", // 薰衣草
 "#FFFACD", // 柠檬薄纱
 "#E0FFFF", // 浅青色
@@ -215,25 +253,6 @@
             outputTextColor = "#000000"; // 暗色输出框文字
             userMessageBackgroundColor = "#dcf8c6"; // 亮色用户消息背景
             otherMessageBackgroundColor = "#f1f0f0"; // 亮色其他消息背景
-        }
-    }
-
-    private void OnUserSendMessageButtonClicked()
-    {
-        if (!string.IsNullOrWhiteSpace(inputMessage))
-        {
-            inputMessages.Add(new ChatMessage { Content = inputMessage, Role = "User" });
-
-            inputMessage = string.Empty; // 清空输入框
-        }
-    }
-
-    private void OnRobotSendMessageButtonClicked()
-    {
-        if (!string.IsNullOrWhiteSpace(inputMessage))
-        {
-            inputMessages.Add(new ChatMessage { Content = inputMessage, Role = "Robot" });
-            inputMessage = string.Empty; // 清空输入框
         }
     }
 }

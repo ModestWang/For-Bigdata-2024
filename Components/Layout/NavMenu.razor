@@ -1,4 +1,6 @@
 ﻿@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -44,7 +46,7 @@
                     }
                     <button class="btn btn-warning btn-sm"
                         style="position: absolute; right: 50px; background-color: #ffc107; border-color: #ffc107; padding: 0.25rem 0.5rem;"
-                        @onclick="() => OnRenameChatButtonClicked(chatIndex, chat.Name)">
+                        @onclick="() => OnRenameChatButtonClicked(chatIndex, chat.Name ?? string.Empty)">
                         <img src="rename.png" alt="重命名" style="width: 16px; height: 16px;" />
                     </button>
                     <button class="btn btn-danger btn-sm"

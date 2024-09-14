@@ -5,8 +5,8 @@ namespace BlazorApp
     // Message类
     public class ChatMessage
     {
-        public required string Content { get; set; }
         public required string Role { get; set; }
+        public required string Content { get; set; }
     }
 
     // Chat实例
@@ -19,6 +19,7 @@ namespace BlazorApp
         public List<ChatMessage>? InputMessages { get; } = new List<ChatMessage>(); // 输入消息列表
         public List<ChatMessage>? OutputMessages { get; } = new List<ChatMessage>(); // 输出消息列表
         public bool IsEditing { get; set; } = false; // 是否正在编辑
+
 
         public ChatInstance()
         {
@@ -65,6 +66,10 @@ namespace BlazorApp
         // 当前聊天的索引
         public int CurrentChatIndex { get; set; }
 
+        // API
+        public static string ChatAPIKey = "";
+        public static string ChatAPIUrl = "";
+        public static AccessAPI ChatAPI = new AccessAPI(ChatAPIKey, ChatAPIUrl);
 
         // 构造函数
         public ChatManager()
