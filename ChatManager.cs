@@ -20,37 +20,47 @@ namespace BlazorApp
         public List<ChatMessage>? OutputMessages { get; } = new List<ChatMessage>(); // 输出消息列表
         public bool IsEditing { get; set; } = false; // 是否正在编辑
 
+        // 定义欢迎问候数组
+        public string[] welcomeMessages = new string[]
+        {
+            "欢迎！很高兴见到你。",
+            "你好！希望你有美好的一天。",
+            "我是蛋蛋，很高兴见到你😘",
+            "嗨！有什么我可以帮你的吗？",
+            "你好，我是蛋蛋！很高兴为你服务。"
+        };
+
 
         public ChatInstance()
         {
             Name = "New Chat";
+
+            // 生成随机索引
+            Random random = new Random();
+            int index = random.Next(welcomeMessages.Length);
+
+            // 设置欢迎问候
+            WellcomeMessage = new ChatMessage()
+            {
+                Content = welcomeMessages[index],
+                Role = "System"
+            };
         }
 
         public ChatInstance(String CustomName)
         {
             Name = CustomName;
+
+            // 生成随机索引
+            Random random = new Random();
+            int index = random.Next(welcomeMessages.Length);
+
+            // 设置欢迎问候
             WellcomeMessage = new ChatMessage()
             {
-                Content = "Welcome to the chat!",
-                Role = "Robot"
+                Content = welcomeMessages[index],
+                Role = "System"
             };
-        }
-
-        public void SendMessage(String message)
-        {
-
-        }
-
-        public event Action<String> OnMessageReceived
-        {
-            add
-            {
-                // Add the event handler
-            }
-            remove
-            {
-                // Remove the event handler
-            }
         }
     }
 
@@ -67,14 +77,14 @@ namespace BlazorApp
         public int CurrentChatIndex { get; set; }
 
         // API
-        public static string ChatAPIKey = "";
-        public static string ChatAPIUrl = "";
+        public static string ChatAPIKey = "none";
+        public static string ChatAPIUrl = "https://llmsapi.cpolar.top/v1";
         public static AccessAPI ChatAPI = new AccessAPI(ChatAPIKey, ChatAPIUrl);
 
         // 构造函数
         public ChatManager()
         {
-            CreateChat("Chat 1");
+            CreateChat("New Chat");
         }
 
         // 创建新的聊天

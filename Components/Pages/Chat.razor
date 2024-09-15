@@ -11,7 +11,7 @@
             @foreach (var message in Messages)
             {
                 <li class="message-item @(message.Role == "User" ? "user-message" : "other-message")">
-                    @if (message.Role == "Robot")
+                    @if (message.Role == "System")
                     {
                         <img src="egg.png" class="icon" />
                     }
@@ -32,7 +32,7 @@
 
     @* <div class="input-box">
     <input @bind="answer" placeholder="输入消息..." style="background-color:@inputBoxBackgroundColor;" />
-    <button @onclick="OnRobotSendMessageButtonClicked">发送(Robot)</button>
+    <button @onclick="OnSystemSendMessageButtonClicked">发送(System)</button>
     </div> *@
 </div>
 
@@ -131,6 +131,7 @@
     [Parameter]
     public int index { get; set; }
 
+
     private string backgroundColor = "#FFFFFF";
     private string textColor = "#000000";
     private string inputBoxBackgroundColor = "#FFFFFF";
@@ -146,7 +147,6 @@
     //private List<ChatMessage> Answers = new List<ChatMessage>();
     private List<ChatMessage> Messages = new List<ChatMessage>();
 
-    AccessAPI api = new AccessAPI();
 
     protected override void OnInitialized()
     {
@@ -156,6 +156,15 @@
         themeToggleButtonColor = LightenColor(backgroundColor, 0.2);
         themeToggleButtonBorderColor = backgroundColor;
         outputTextColor = textColor;
+
+        if (ChatManager.ChatManagerInstance.Chats.Count > index)
+        {
+            var welcomeMessage = ChatManager.ChatManagerInstance.Chats[index].WellcomeMessage;
+            if (welcomeMessage != null)
+            {
+                Messages.Add(welcomeMessage);
+            }
+        }
     }
 
     private async Task OnUserSendMessageButtonClicked()
@@ -163,32 +172,34 @@
         if (!string.IsNullOrWhiteSpace(question))
         {
             Messages.Add(new ChatMessage { Content = question, Role = "User" });
-            string tempQuestion = question;
+            string query = "问题：" + question;
             question = string.Empty; // 清空输入框
-            answer = await ChatManager.ChatAPI.GetAnswerFromQwen(tempQuestion);
-            await TypeMessageAsync(answer);
-        }
-    }
-
-    private async Task TypeMessageAsync(string message)
-    {
-        var robotMessage = new ChatMessage { Content = string.Empty, Role = "Robot" };
-        Messages.Add(robotMessage);
-
-        foreach (char c in message)
-        {
-            robotMessage.Content += c;
-            StateHasChanged();
-            await Task.Delay(50); // 调整延迟以控制逐字输出速度
+            answer = await ChatManager.ChatAPI.GetAnswerFromQwen(query);
+            //await TypeMessageAsync(answer);
         }
     }
 
     /*
-    private void OnRobotSendMessageButtonClicked()
+    private async Task TypeMessageAsync(string message)
+    {
+        var SystemMessage = new ChatMessage { Content = string.Empty, Role = "System" };
+        Messages.Add(SystemMessage);
+
+        foreach (char c in message)
+        {
+            SystemMessage.Content += c;
+            StateHasChanged();
+            await Task.Delay(50); // 调整延迟以控制逐字输出速度
+        }
+    }
+    */
+
+    /*
+    private void OnSystemSendMessageButtonClicked()
     {
     if (!string.IsNullOrWhiteSpace(answer))
     {
-    Messages.Add(new ChatMessage { Content = answer, Role = "Robot" });
+    Messages.Add(new ChatMessage { Content = answer, Role = "System" });
     //answer = string.Empty; // 清空输入框
     }
     }
