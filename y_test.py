@@ -1,9 +1,9 @@
 '''
 FilePath: y_test.py
 Author: ModestWang 1598593280@qq.com
-Date: 2024-09-15 20:28:21
+Date: 2024-09-16 12:48:52
 LastEditors: ModestWang
-LastEditTime: 2024-09-15 20:36:29
+LastEditTime: 2024-09-16 13:03:45
 2024 by ModestWang, All Rights Reserved.
 Descripttion:
 '''
@@ -21,8 +21,9 @@ client = OpenAI(
 
 # 从 json 文件中加载历史记录
 def load_conversation_history(history_file):
-    if os.path.exists(history_file):
-        with open(history_file, 'r', encoding='utf-8') as f:
+    history_path = os.path.join("history", history_file)
+    if os.path.exists(history_path):
+        with open(history_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     else:
         return [
@@ -34,7 +35,8 @@ def load_conversation_history(history_file):
 
 # 保存历史记录到 json
 def save_conversation_history(history_file, history):
-    with open(history_file, 'w', encoding='utf-8') as f:
+    history_path = os.path.join("history", history_file)
+    with open(history_path, 'w', encoding='utf-8') as f:
         json.dump(history, f, ensure_ascii=False, indent=4)
 
 # 从 qwen 获取答案
@@ -64,13 +66,17 @@ def get_answer_from_qwen(history_file, question):
     save_conversation_history(history_file, conversation_history)
 
     # 将答案写入文件(只是方便C#调用，历史记录还是保存在json文件中)
-    with open("out/answer.txt", "a", encoding="utf-8") as file:
+    with open("output/answer.txt", "a", encoding="utf-8") as file:
         file.write(answer + "\n")
 
+    return answer
+
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        question = sys.argv[1]
+    if len(sys.argv) > 2:
+        history_file = sys.argv[1]
+        question = sys.argv[2]
     else:
+        history_file = "default.json"
         question = "你好"  # 如果没有提供参数，可以设置一个默认问题
-    answer = get_answer_from_qwen(question)
+    answer = get_answer_from_qwen(history_file, question)
     print(answer)

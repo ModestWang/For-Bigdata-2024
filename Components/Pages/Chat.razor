@@ -3,12 +3,13 @@
 @using System.Text;
 @rendermode InteractiveServer
 @inject IConfiguration Configuration
+@inject IJSRuntime JS
 
 <div class="chat-container">
     <button @onclick="ToggleTheme" class="theme-toggle-button"
         style="background-color:@themeToggleButtonColor; border: 2px solid @themeToggleButtonBorderColor;">🌈</button>
 
-    <div class="output-box">
+    <div class="output-box" @ref="chatContainer">
         <ul>
             @foreach (var message in Messages)
             {
@@ -37,10 +38,6 @@
         }
     </div>
 
-    @* <div class="input-box">
-    <input @bind="answer" placeholder="输入消息..." style="background-color:@inputBoxBackgroundColor;" />
-    <button @onclick="OnSystemSendMessageButtonClicked">发送(System)</button>
-    </div> *@
 </div>
 
 <style>
@@ -170,6 +167,7 @@
     private List<ChatMessage> Messages = new List<ChatMessage>();
 
     private string chat_id = string.Empty;
+    private ElementReference chatContainer;
 
     protected override void OnInitialized()
     {
@@ -182,10 +180,10 @@
 
         // 根据当前时间生成唯一的 chat_id
         chat_id = DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".json";
-        question = chat_id;
+        // question = chat_id;
 
-        System.IO.File.WriteAllText("out/question.txt", string.Empty);
-        System.IO.File.WriteAllText("out/answer.txt", string.Empty);
+        System.IO.File.WriteAllText("output/question.txt", string.Empty);
+        System.IO.File.WriteAllText("output/answer.txt", string.Empty);
 
         if (ChatManager.ChatManagerInstance.Chats.Count > index)
         {
@@ -219,7 +217,7 @@
             await process.WaitForExitAsync();
 
             // 读取answer.txt中的内容并返回
-            string answerFilePath = "out/answer.txt";
+            string answerFilePath = "output/answer.txt";
             if (File.Exists(answerFilePath))
             {
                 using (StreamReader sr = new StreamReader(answerFilePath, Encoding.UTF8))
@@ -256,14 +254,20 @@
             string tempQuestion = question;
             question = string.Empty; // 清空输入框
             isLoading = true; // 设置加载标志位
+            await JS.InvokeVoidAsync("scrollToBottom", chatContainer); // 立即滚动到底部
+#pragma warning disable CS4014
+            await JS.InvokeVoidAsync("scrollToBottom", chatContainer);
+#pragma warning restore CS4014
             answer = await CallPythonScript(chat_id, tempQuestion);
             isLoading = false; // 取消加载标志位
             await TypeMessageAsync(answer);
+            await JS.InvokeVoidAsync("scrollToBottom", chatContainer); // 再次滚动到底部
         }
     }
 
     private async Task TypeMessageAsync(string message)
     {
+        await JS.InvokeVoidAsync("scrollToBottom", chatContainer); // 立即滚动到底部
         var SystemMessage = new ChatMessage { Content = string.Empty, Role = "System" };
         Messages.Add(SystemMessage);
 
@@ -272,7 +276,9 @@
             SystemMessage.Content += c;
             StateHasChanged();
             await Task.Delay(50); // 调整延迟以控制逐字输出速度
+            await JS.InvokeVoidAsync("scrollToBottom", chatContainer);
         }
+
     }
 
     private string GetRandomColor()
@@ -337,3 +343,9 @@
         }
     }
 }
+
+<script>
+    function scrollToBottom(element) {
+        element.scrollTop = element.scrollHeight;
+    }
+</script>
