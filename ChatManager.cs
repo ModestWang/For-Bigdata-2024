@@ -77,9 +77,9 @@ namespace BlazorApp
         public int CurrentChatIndex { get; set; }
 
         // API
-        public static string ChatAPIKey = "none";
-        public static string ChatAPIUrl = "https://llmsapi.cpolar.top/v1";
-        public static AccessAPI ChatAPI = new AccessAPI(ChatAPIKey, ChatAPIUrl);
+        // public static string ChatAPIKey = "none";
+        // public static string ChatAPIUrl = "https://llmsapi.cpolar.top/v1";
+        // public static AccessAPI ChatAPI = new AccessAPI(ChatAPIKey, ChatAPIUrl);
 
         // 构造函数
         public ChatManager()

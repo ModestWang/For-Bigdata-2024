@@ -1,4 +1,6 @@
 ﻿@page "/chat/{index:int}"
+@using System.Diagnostics
+@using System.Text;
 @rendermode InteractiveServer
 @inject IConfiguration Configuration
 
@@ -26,8 +28,13 @@
     </div>
 
     <div class="input-box">
-        <input @bind="question" placeholder="输入消息..." style="background-color:@inputBoxBackgroundColor;" />
+        <input @bind="question" placeholder="输入消息..." style="background-color:@inputBoxBackgroundColor;"
+            @onkeydown="HandleKeyDown" />
         <button @onclick="OnUserSendMessageButtonClicked">发送(User)</button>
+        @if (isLoading)
+        {
+            <div class="loading-spinner"></div>
+        }
     </div>
 
     @* <div class="input-box">
@@ -125,12 +132,28 @@
         height: 40px;
         font-size: 20px;
     }
+
+    .loading-spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border-left-color: #09f;
+        animation: spin 1s linear infinite;
+        margin-top: 20px;
+        margin-left: 10px;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
 </style>
 
 @code {
     [Parameter]
     public int index { get; set; }
-
 
     private string backgroundColor = "#FFFFFF";
     private string textColor = "#000000";
@@ -143,10 +166,10 @@
     private bool isDarkTheme = false;
     private string question { get; set; } = string.Empty;
     private string answer { get; set; } = string.Empty;
-    //private List<ChatMessage> Questions = new List<ChatMessage>();
-    //private List<ChatMessage> Answers = new List<ChatMessage>();
+    private bool isLoading = false;
     private List<ChatMessage> Messages = new List<ChatMessage>();
 
+    private string chat_id = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -156,6 +179,13 @@
         themeToggleButtonColor = LightenColor(backgroundColor, 0.2);
         themeToggleButtonBorderColor = backgroundColor;
         outputTextColor = textColor;
+
+        // 根据当前时间生成唯一的 chat_id
+        chat_id = DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".json";
+        question = chat_id;
+
+        System.IO.File.WriteAllText("out/question.txt", string.Empty);
+        System.IO.File.WriteAllText("out/answer.txt", string.Empty);
 
         if (ChatManager.ChatManagerInstance.Chats.Count > index)
         {
@@ -167,19 +197,71 @@
         }
     }
 
+    // 调用 Python 脚本
+    static async Task<string> CallPythonScript(string filename, string question)
+    {
+        ProcessStartInfo start = new ProcessStartInfo();
+        start.FileName = "python"; // 或者指定python.exe的完整路径
+        start.Arguments = $"y_test.py \"{filename}\" \"{question}\"";
+        start.UseShellExecute = false;
+        start.RedirectStandardOutput = true;
+        start.RedirectStandardError = true;
+        start.CreateNoWindow = true;
+
+        Process? process = Process.Start(start);
+        if (process == null)
+        {
+            throw new InvalidOperationException("Failed to start process.");
+        }
+
+        using (process)
+        {
+            await process.WaitForExitAsync();
+
+            // 读取answer.txt中的内容并返回
+            string answerFilePath = "out/answer.txt";
+            if (File.Exists(answerFilePath))
+            {
+                using (StreamReader sr = new StreamReader(answerFilePath, Encoding.UTF8))
+                {
+                    string answerContent = string.Empty;
+                    while (!sr.EndOfStream)
+                    {
+                        answerContent = await sr.ReadLineAsync() ?? string.Empty;
+                    }
+                    return answerContent;
+                }
+            }
+            else
+            {
+                Console.WriteLine("answer.txt 文件不存在。");
+                return string.Empty;
+            }
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(question))
+        {
+            await OnUserSendMessageButtonClicked();
+        }
+    }
+
     private async Task OnUserSendMessageButtonClicked()
     {
         if (!string.IsNullOrWhiteSpace(question))
         {
             Messages.Add(new ChatMessage { Content = question, Role = "User" });
-            string query = "问题：" + question;
+            string tempQuestion = question;
             question = string.Empty; // 清空输入框
-            answer = await ChatManager.ChatAPI.GetAnswerFromQwen(query);
-            //await TypeMessageAsync(answer);
+            isLoading = true; // 设置加载标志位
+            answer = await CallPythonScript(chat_id, tempQuestion);
+            isLoading = false; // 取消加载标志位
+            await TypeMessageAsync(answer);
         }
     }
 
-    /*
     private async Task TypeMessageAsync(string message)
     {
         var SystemMessage = new ChatMessage { Content = string.Empty, Role = "System" };
@@ -192,18 +274,6 @@
             await Task.Delay(50); // 调整延迟以控制逐字输出速度
         }
     }
-    */
-
-    /*
-    private void OnSystemSendMessageButtonClicked()
-    {
-    if (!string.IsNullOrWhiteSpace(answer))
-    {
-    Messages.Add(new ChatMessage { Content = answer, Role = "System" });
-    //answer = string.Empty; // 清空输入框
-    }
-    }
-    */
 
     private string GetRandomColor()
     {
