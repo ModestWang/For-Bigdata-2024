@@ -6,10 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="RestSharp" Version="112.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="OpenAI" Version="1.11.0" />
-    <PackageReference Include="Blazorise" Version="1.6.1" />
+    <Folder Include="history\" />
   </ItemGroup>
 
 </Project>
