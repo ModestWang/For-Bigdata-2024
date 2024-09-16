@@ -96,10 +96,24 @@
     {
         BlazorApp.ChatManager.ChatManagerInstance.CreateChat();
     }
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+
     private void OnDeleteChatButtonClicked(int chatIndex)
     {
         ChatManager.ChatManagerInstance.Chats.RemoveAt(chatIndex);
         StateHasChanged();
+
+        if (ChatManager.ChatManagerInstance.Chats.Count == 0)
+        {
+            // 导航到主页
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            // 导航到前一个界面
+            NavigationManager.NavigateTo($"chat/{chatIndex - 1}"); // 替换为实际的前一个界面路径
+        }
     }
     private void OnRenameChatButtonClicked(int chatIndex, string currentName)
     {

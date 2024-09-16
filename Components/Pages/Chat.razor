@@ -1,6 +1,7 @@
 ﻿@page "/chat/{index:int}"
 @using System.Diagnostics
 @using System.Text;
+@using System.Text.Json
 @rendermode InteractiveServer
 @inject IConfiguration Configuration
 @inject IJSRuntime JS
@@ -13,16 +14,20 @@
         <ul>
             @foreach (var message in Messages)
             {
-                <li class="message-item @(message.Role == "User" ? "user-message" : "other-message")">
-                    @if (message.Role == "System")
+                <li class="message-item @(message.role == "user" ? "user-message" : "other-message")">
+                    @if (message.role == "user" || message.role == "assistant")
                     {
-                        <img src="egg.png" class="icon" />
+                        @if (message.role == "assistant")
+                        {
+                            <img src="egg.png" class="icon" />
+                        }
+                        <span class="message-content">@message.content</span>
+                        @if (message.role == "user")
+                        {
+                            <img src="user.png" class="icon" />
+                        }
                     }
-                    <span class="message-content">@message.Content</span>
-                    @if (message.Role == "User")
-                    {
-                        <img src="user.png" class="icon" />
-                    }
+
                 </li>
             }
         </ul>
@@ -179,19 +184,37 @@
         outputTextColor = textColor;
 
         // 根据当前时间生成唯一的 chat_id
-        chat_id = DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".json";
-        // question = chat_id;
-
-        System.IO.File.WriteAllText("output/question.txt", string.Empty);
+        if (ChatManager.ChatManagerInstance.Chats != null && ChatManager.ChatManagerInstance.Chats.Count > index)
+        {
+            chat_id = ChatManager.ChatManagerInstance.Chats[index].ChatId;
+        }
+        else
+        {
+            chat_id = string.Empty; // or handle the error appropriately
+        }
         System.IO.File.WriteAllText("output/answer.txt", string.Empty);
 
-        if (ChatManager.ChatManagerInstance.Chats.Count > index)
+
+        // 从相应的 chat_id 读取对话记录
+        string historyFilePath = $"history/{chat_id}";
+        if (File.Exists(historyFilePath))
         {
-            var welcomeMessage = ChatManager.ChatManagerInstance.Chats[index].WellcomeMessage;
-            if (welcomeMessage != null)
-            {
-                Messages.Add(welcomeMessage);
-            }
+            string historyContent = File.ReadAllText(historyFilePath);
+            Messages = JsonSerializer.Deserialize<List<ChatMessage>>(historyContent) ?? new List<ChatMessage>();
+        }
+        else
+        {
+            Messages = new List<ChatMessage>();
+        }
+
+        // 添加欢迎消息（如果有）
+        var welcomeMessage = ChatManager.ChatManagerInstance.Chats != null && ChatManager.ChatManagerInstance.Chats.Count >
+        index
+        ? ChatManager.ChatManagerInstance.Chats[index].WellcomeMessage
+        : null;
+        if (welcomeMessage != null)
+        {
+            Messages.Insert(0, welcomeMessage);
         }
     }
 
@@ -250,7 +273,7 @@
     {
         if (!string.IsNullOrWhiteSpace(question))
         {
-            Messages.Add(new ChatMessage { Content = question, Role = "User" });
+            Messages.Add(new ChatMessage { content = question, role = "user" });
             string tempQuestion = question;
             question = string.Empty; // 清空输入框
             isLoading = true; // 设置加载标志位
@@ -268,12 +291,12 @@
     private async Task TypeMessageAsync(string message)
     {
         await JS.InvokeVoidAsync("scrollToBottom", chatContainer); // 立即滚动到底部
-        var SystemMessage = new ChatMessage { Content = string.Empty, Role = "System" };
-        Messages.Add(SystemMessage);
+        var AssistantMessage = new ChatMessage { content = string.Empty, role = "assistant" };
+        Messages.Add(AssistantMessage);
 
         foreach (char c in message)
         {
-            SystemMessage.Content += c;
+            AssistantMessage.content += c;
             StateHasChanged();
             await Task.Delay(50); // 调整延迟以控制逐字输出速度
             await JS.InvokeVoidAsync("scrollToBottom", chatContainer);
@@ -287,21 +310,21 @@
         var colors = new List<string>
 {
 "#FFB6C1", // 浅粉红
-"#E6E6FA", // 薰衣草
+@* "#E6E6FA", // 薰衣草
 "#FFFACD", // 柠檬薄纱
 "#E0FFFF", // 浅青色
 "#F0E68C", // 卡其色
 "#FAFAD2", // 浅金菊黄
-"#D8BFD8", // 蓟色
+"#D8BFD8", // 蓟色 *@
 "#FFE4E1", // 薄雾玫瑰
-"#F5DEB3", // 小麦色
-"#FFF0F5", // 脸红的淡紫色
+@* "#F5DEB3", // 小麦色 *@
+@* "#FFF0F5", // 脸红的淡紫色
 "#F5F5DC", // 米色
 "#F0FFF0", // 蜜瓜色
 "#F0FFFF", // 天蓝色
 "#E6E6FA", // 薰衣草
 "#FFF5EE", // 海贝色
-"#FFE4B5", // 秘鲁色
+"#FFE4B5", // 秘鲁色 *@
 }; // 更多的柔和颜色
         int index = random.Next(colors.Count);
         return colors[index];
