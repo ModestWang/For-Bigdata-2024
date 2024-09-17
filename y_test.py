@@ -3,7 +3,7 @@ FilePath: y_test.py
 Author: ModestWang 1598593280@qq.com
 Date: 2024-09-16 12:48:52
 LastEditors: ModestWang
-LastEditTime: 2024-09-16 20:13:08
+LastEditTime: 2024-09-17 09:28:39
 2024 by ModestWang, All Rights Reserved.
 Descripttion:
 '''
@@ -51,10 +51,10 @@ def get_answer_from_qwen(history_file, question):
 
     response = client.chat.completions.create(
         model="E:/Temp/sft_model",  # 填入模型
-        messages=conversation_history,
+        messages=conversation_history, # 历史记录
         stream=False,
-        temperature=0.82,
-        max_tokens=512,
+        temperature=0.82, # 温度
+        max_tokens=512, # 最大生成长度
     )
 
     answer = response.choices[0].message.content.strip()

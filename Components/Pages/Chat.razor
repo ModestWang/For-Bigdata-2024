@@ -183,14 +183,15 @@
         themeToggleButtonBorderColor = backgroundColor;
         outputTextColor = textColor;
 
-        // 根据当前时间生成唯一的 chat_id
-        if (ChatManager.ChatManagerInstance.Chats != null && ChatManager.ChatManagerInstance.Chats.Count > index)
+        // 绑定 chat_id
+        // 检查 index 是否在有效范围内
+        if (ChatManager.ChatManagerInstance.Chats != null && index >= 0 && index < ChatManager.ChatManagerInstance.Chats.Count)
         {
             chat_id = ChatManager.ChatManagerInstance.Chats[index].ChatId;
         }
         else
         {
-            chat_id = string.Empty; // or handle the error appropriately
+            return;
         }
         System.IO.File.WriteAllText("output/answer.txt", string.Empty);
 
@@ -309,22 +310,21 @@
         var random = new Random();
         var colors = new List<string>
 {
-"#FFB6C1", // 浅粉红
-@* "#E6E6FA", // 薰衣草
+"#FFB6C1", // 浅粉红"#E6E6FA", // 薰衣草
 "#FFFACD", // 柠檬薄纱
 "#E0FFFF", // 浅青色
 "#F0E68C", // 卡其色
 "#FAFAD2", // 浅金菊黄
-"#D8BFD8", // 蓟色 *@
+"#D8BFD8", // 蓟色
 "#FFE4E1", // 薄雾玫瑰
-@* "#F5DEB3", // 小麦色 *@
-@* "#FFF0F5", // 脸红的淡紫色
+"#F5DEB3", // 小麦色
+"#FFF0F5", // 脸红的淡紫色
 "#F5F5DC", // 米色
 "#F0FFF0", // 蜜瓜色
 "#F0FFFF", // 天蓝色
 "#E6E6FA", // 薰衣草
 "#FFF5EE", // 海贝色
-"#FFE4B5", // 秘鲁色 *@
+"#FFE4B5", // 秘鲁色
 }; // 更多的柔和颜色
         int index = random.Next(colors.Count);
         return colors[index];
